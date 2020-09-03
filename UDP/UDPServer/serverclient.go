@@ -47,37 +47,37 @@ func handleMsg(msg string) string {
 	var result string
 	//get CMD_MSISDN
 	CMD_MSISDN := msg[:6]
+	CMD_MSISDN = hex.EncodeToString([]byte(CMD_MSISDN))
 	fmt.Println(CMD_MSISDN)
+	CMD, _ := strconv.Atoi(string(CMD_MSISDN[0]))
+	MSISDN := CMD_MSISDN[1:]
+	fmt.Println(MSISDN)
 	//get IMSI
-	lenIMSI, _ := strconv.Atoi(string(msg[6]))
-	if lenIMSI > 11 {
-		lenIMSI, _ = strconv.Atoi(hex.EncodeToString([]byte(strconv.Itoa(lenIMSI))))
-	}
+	lenIMSI, _ := strconv.Atoi(hex.EncodeToString([]byte(string(msg[6]))))
+	lenIMSI -= 10
 	index := 7 + (lenIMSI+1)/2
 	IMSI := msg[7:index]
-	fmt.Println(lenIMSI, IMSI)
-	//getName
-	lenName, _ := strconv.Atoi(string(msg[index]))
-	if lenName == 0 {
-		lenName, _ = strconv.Atoi(hex.EncodeToString([]byte(string(msg[index]))))
+	IMSI = hex.EncodeToString([]byte(IMSI))
+	if CMD == 3 {
+
+	} else {
+		//getName
+		lenName, _ := strconv.Atoi(hex.EncodeToString([]byte(string(msg[index]))))
+		lenName -= 10
+		name := msg[index+1 : index+lenName+1]
+		index += lenName + 1
+		fmt.Println(lenName, name)
+		//get CMT
+		lenCMT, _ := strconv.Atoi(hex.EncodeToString([]byte(string(msg[index]))))
+		lenCMT -= 10
+		CMT := msg[index+1 : index+lenCMT+1]
+		fmt.Println(lenCMT, CMT)
+		index += lenCMT + 1
+		//get Birthday
+		lenBirthday, _ := strconv.Atoi(hex.EncodeToString([]byte(string(msg[index]))))
+		lenBirthday -= 10
+		birthday := msg[index+1 : index+lenBirthday+1]
+		fmt.Println(lenBirthday, birthday)
 	}
-	name := msg[index+1 : index+lenName+1]
-	index += lenName + 1
-	fmt.Println(lenName, name)
-	//get CMT
-	lenCMT, _ := strconv.Atoi(string(msg[index]))
-	if lenCMT == 0 {
-		lenCMT, _ = strconv.Atoi(hex.EncodeToString([]byte(string(msg[index]))))
-	}
-	CMT := msg[index+1 : index+lenCMT+1]
-	fmt.Println(lenCMT, CMT)
-	index += lenCMT + 1
-	//get Birthday
-	lenBirthday, _ := strconv.Atoi(string(msg[index]))
-	if lenBirthday == 0 {
-		lenBirthday, _ = strconv.Atoi(hex.EncodeToString([]byte(string(msg[index]))))
-	}
-	birthday := msg[index+1 : index+lenBirthday+1]
-	fmt.Println(lenBirthday, birthday)
 	return result
 }

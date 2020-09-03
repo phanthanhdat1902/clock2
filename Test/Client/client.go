@@ -1,31 +1,85 @@
+// This sample program demonstrates how to create goroutines and
+
+// how the scheduler behaves.
+
 package main
 
 import (
-	"bufio"
-	"encoding/hex"
 	"fmt"
-	"net"
+
+	"runtime"
+
+	"sync"
 )
 
+// main is the entry point for all Go programs.
+
 func main() {
-	_, err := hex.DecodeString("8")
-	fmt.Println(err)
-	//var saddr net.TCPAddr
-	//saddr.IP = net.ParseIP("127.0.0.1")
-	//saddr.Port = 8000
-	//connect, _ := net.DialTCP("tcp", nil, &saddr)
-	//go recv(connect)
-	//connect.CloseWrite()
-	//for {
-	//	reader := bufio.NewReader(os.Stdin)
-	//	msg, _ := reader.ReadString('\n')
-	//	connect.Write([]byte(msg))
-	//}
-}
-func recv(connect net.Conn) {
-	for {
-		reader := bufio.NewReader(connect)
-		msg, _ := reader.ReadString('\n')
-		fmt.Println(msg)
-	}
+
+	// Allocate 1 logical processor for the scheduler to use.
+
+	runtime.GOMAXPROCS(2)
+
+	// wg is used to wait for the program to finish.
+
+	// Add a count of two, one for each goroutine.
+
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
+	fmt.Println("Start Goroutines")
+
+	// Declare an anonymous function and create a goroutine.
+
+	go func() {
+
+		// Schedule the call to Done to tell main we are done.
+
+		defer wg.Done()
+
+		// Display the alphabet three times
+
+		for count := 0; count < 3; count++ {
+
+			for char := 'a'; char < 'a'+26; char++ {
+
+				fmt.Printf("%c ", char)
+
+			}
+
+		}
+
+	}()
+
+	// Declare an anonymous function and create a goroutine.
+
+	go func() {
+
+		// Schedule the call to Done to tell main we are done.
+
+		defer wg.Done()
+
+		// Display the alphabet three times
+
+		for count := 0; count < 3; count++ {
+
+			for char := 'A'; char < 'A'+26; char++ {
+
+				fmt.Printf("%c ", char)
+
+			}
+
+		}
+
+	}()
+
+	// Wait for the goroutines to finish.
+
+	fmt.Println("Waiting To Finish")
+
+	wg.Wait()
+
+	fmt.Println("\nTerminating Program")
+
 }
