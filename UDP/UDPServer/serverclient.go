@@ -17,6 +17,8 @@ const (
 	DB_PASS = /*"pass"*/ "anh123asd"
 )
 
+var number int = 0
+
 type customer struct {
 	MSISDN   string
 	IMSI     string
@@ -28,14 +30,13 @@ type customer struct {
 var done = make(chan bool)
 
 /*open*/
-func OpenDB() *sql.DB {
+func OpenDB() (*sql.DB, error) {
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@%s/%s", DB_USER, DB_PASS, DB_HOST, DB_NAME))
 	if err != nil {
 		fmt.Println(err)
-		fmt.Println(err)
-		return nil
+		return db, err
 	}
-	return db
+	return db, nil
 }
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -62,71 +63,21 @@ func handleConnect(connection *net.UDPConn) {
 	for {
 		memset(buffer)
 		_, client, _ := connection.ReadFromUDP(buffer)
-		result := make(chan bool)
-		go handleMsg(string(buffer), result)
-		check := <-result
-		if check == false {
-			connection.WriteToUDP([]byte("400 Error\n"), client)
-		} else {
-			connection.WriteToUDP([]byte("200 OK\n"), client)
-		}
-		connection.WriteToUDP([]byte("200 OK\n"), client)
+		go handleMsg(string(buffer), connection, client)
+		number++
+		fmt.Println(number)
 	}
 }
 
-func handleMsg(msg string, result chan bool) {
+func handleMsg(msg string, connection *net.UDPConn, client *net.UDPAddr) {
 	var cus customer
 	//get CMD_MSISDN
 	CMD_MSISDN := msg[:6]
+	var result error
 	chanCus := make(chan customer)
 	chanCMD := make(chan int)
-	chanErr := make(chan bool)
+	chanErr := make(chan error)
 	go workingDatabase(chanCus, chanCMD, chanErr)
-	//go func() {
-	//	db:=OpenDB()
-	//	defer db.Close()
-	//	if db!=nil{
-	//		getCus:=<-chanCus
-	//		getCMD:=<-chanCMD
-	//		if getCMD==1{
-	//			stmt, err := db.Prepare("insert into infor_customer values (?,?,?,?,?)")
-	//			if err!=nil{
-	//				result<-false
-	//			}else{
-	//				_,err:=stmt.Exec(getCus.MSISDN,getCus.IMSI,getCus.name,getCus.CMT,getCus.birthday)
-	//				if err!=nil{
-	//					result<-false
-	//				}
-	//			}
-	//		}else if getCMD==2{
-	//			stmt, err := db.Prepare("update infor_customer set full_name=?,CMND=?,birthday=? where MSISDN=?")
-	//			if err!=nil{
-	//				result<-false
-	//			}else{
-	//				_,err:=stmt.Exec(getCus.name,getCus.CMT,getCus.birthday,getCus.MSISDN)
-	//				if err!=nil{
-	//					result<-false
-	//				}
-	//			}
-	//		}else if getCMD==3{
-	//			stmt, err := db.Prepare("DELETE FROM infor_customer WHERE MSISDN = ?")
-	//			if err!=nil{
-	//				result<-false
-	//			}else{
-	//				_,err:=stmt.Exec(getCus.MSISDN)
-	//				if err!=nil{
-	//					result<-false
-	//				}
-	//			}
-	//		}
-	//		result<-true
-	//		return
-	//	}else{
-	//		result<-false
-	//	}
-	//	result<-true
-	//	return
-	//}()
 	CMD_MSISDN = hex.EncodeToString([]byte(CMD_MSISDN))
 	CMD, _ := strconv.Atoi(string(CMD_MSISDN[0]))
 	MSISDN := CMD_MSISDN[1:]
@@ -144,7 +95,13 @@ func handleMsg(msg string, result chan bool) {
 		//func remove
 		chanCus <- cus
 		chanCMD <- 3
-		result <- <-chanErr
+		result = <-chanErr
+		fmt.Println("handleMsg: ", chanErr)
+		if result != nil {
+			connection.WriteToUDP([]byte("400 Err\n"), client)
+		} else {
+			connection.WriteToUDP([]byte("200 OK\n"), client)
+		}
 		return
 	} else {
 		//getName
@@ -166,51 +123,60 @@ func handleMsg(msg string, result chan bool) {
 		cus.birthday = birthday
 		chanCus <- cus
 		chanCMD <- CMD
-		result <- <-chanErr
+		result = <-chanErr
+		if result != nil {
+			connection.WriteToUDP([]byte("400 Err\n"), client)
+		} else {
+			connection.WriteToUDP([]byte("200 OK\n"), client)
+		}
 	}
 }
 
-func workingDatabase(chanCus chan customer, chanCMD chan int, chanErr chan bool) {
-	db := OpenDB()
-	defer db.Close()
+func workingDatabase(chanCus chan customer, chanCMD chan int, chanErr chan error) {
+	getCus := <-chanCus
+	getCMD := <-chanCMD
+	db, err := OpenDB()
 	if db != nil {
-		getCus := <-chanCus
-		getCMD := <-chanCMD
 		if getCMD == 1 {
 			stmt, err := db.Prepare("insert into infor_customer values (?,?,?,?,?)")
 			if err != nil {
-				chanErr <- false
+				chanErr <- err
+				fmt.Println("workingDtabase db.Prepare", err)
 			} else {
 				_, err := stmt.Exec(getCus.MSISDN, getCus.IMSI, getCus.name, getCus.CMT, getCus.birthday)
+				db.Close()
 				if err != nil {
-					chanErr <- false
+					chanErr <- err
 				}
 			}
 		} else if getCMD == 2 {
 			stmt, err := db.Prepare("update infor_customer set full_name=?,CMND=?,birthday=? where MSISDN=?")
 			if err != nil {
-				chanErr <- false
+				chanErr <- err
 			} else {
 				_, err := stmt.Exec(getCus.name, getCus.CMT, getCus.birthday, getCus.MSISDN)
+				db.Close()
 				if err != nil {
-					chanErr <- false
+					chanErr <- err
 				}
 			}
 		} else if getCMD == 3 {
 			stmt, err := db.Prepare("DELETE FROM infor_customer WHERE MSISDN = ?")
 			if err != nil {
-				chanErr <- false
+				chanErr <- err
 			} else {
 				_, err := stmt.Exec(getCus.MSISDN)
+				db.Close()
 				if err != nil {
-					chanErr <- false
+					chanErr <- err
 				}
 			}
 		}
-		chanErr <- true
+		chanErr <- nil
 		return
 	} else {
-		chanErr <- false
+		chanErr <- err
+		fmt.Println(err)
 		return
 	}
 }

@@ -1,34 +1,28 @@
-// This sample program demonstrates how to create goroutines and
-
-// how the scheduler behaves.
-
 package main
 
-import (
-	"fmt"
-	"runtime"
-	"sync"
-	"time"
-)
+import "fmt"
 
-// main is the entry point for all Go programs.
-var wg sync.WaitGroup
+var R int = 99
 
-func createPizza(pizza int) {
-	defer wg.Done()
-	time.Sleep(time.Second)
-	fmt.Printf("Create %d\n", pizza)
-}
-func timeTrack(start time.Time, funName string) {
-	elapsed := time.Since(start)
-	fmt.Println(funName, "took", elapsed)
-}
-func main() {
-	defer timeTrack(time.Now(), "Build Pizzas")
-	runtime.GOMAXPROCS(3)
-	wg.Add(3)
-	for i := 0; i < 3; i++ {
-		go createPizza(i)
+func Workers(input chan int) { // Point #4 	// Point #1
+	for i := 0; i < R; i++ { // Point #1
+		go func(j int) {
+			for {
+				<-input
+				fmt.Println(i)
+			}
+		}(i)
+	} // Point #3
+	input <- 10
+	for {
+
 	}
-	wg.Wait()
+}
+
+func main() {
+	input := make(chan int)
+	Workers(input)
+	for {
+
+	}
 }

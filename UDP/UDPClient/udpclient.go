@@ -8,8 +8,11 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
+
+var wg sync.WaitGroup
 
 func main() {
 	var saddr net.UDPAddr
@@ -23,12 +26,23 @@ func main() {
 		msg = editMsg(msg)
 		msg += "\n"
 		start := time.Now()
-		server.Write([]byte(msg))
-		reader = bufio.NewReader(server)
-		msg, _ = reader.ReadString('\n')
+		//server.Write([]byte(msg))
+		//reader = bufio.NewReader(server)
+		//msg, _ = reader.ReadString('\n')
+		//fmt.Println(msg)
+		for i := 0; i < 5000; i++ {
+			wg.Add(1)
+			go func() {
+				server.Write([]byte(msg))
+				reader = bufio.NewReader(server)
+				msg, _ = reader.ReadString('\n')
+				//fmt.Println(msg)
+				defer wg.Done()
+			}()
+		}
+		wg.Wait()
 		end := time.Now()
 		fmt.Println(end, start)
-		fmt.Println(msg)
 	}
 }
 func editMsg(msg string) string {
