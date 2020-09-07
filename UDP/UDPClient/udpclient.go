@@ -13,6 +13,7 @@ import (
 )
 
 var wg sync.WaitGroup
+var numberC = 0
 
 func main() {
 	var saddr net.UDPAddr
@@ -30,19 +31,42 @@ func main() {
 		//reader = bufio.NewReader(server)
 		//msg, _ = reader.ReadString('\n')
 		//fmt.Println(msg)
-		for i := 0; i < 5000; i++ {
+		for i := 0; i < 1000; i++ {
 			wg.Add(1)
 			go func() {
+				//fmt.Println(msg)
 				server.Write([]byte(msg))
 				reader = bufio.NewReader(server)
-				msg, _ = reader.ReadString('\n')
+				res, err := reader.ReadString('\n')
+				fmt.Println(res)
+				if err != nil {
+					fmt.Println(err)
+				}
+				//numberC++
+				//fmt.Println("number C",numberC)
+				defer wg.Done()
+			}()
+		}
+		for i := 0; i < 1000; i++ {
+			wg.Add(1)
+			go func() {
 				//fmt.Println(msg)
+				server.Write([]byte(msg))
+				reader = bufio.NewReader(server)
+				res, err := reader.ReadString('\n')
+				fmt.Println(res)
+				if err != nil {
+					fmt.Println(err)
+				}
+				//numberC++
+				//fmt.Println("number C",numberC)
 				defer wg.Done()
 			}()
 		}
 		wg.Wait()
 		end := time.Now()
-		fmt.Println(end, start)
+		fmt.Println(end, start, "\n-------------\n")
+
 	}
 }
 func editMsg(msg string) string {
@@ -98,7 +122,7 @@ func editMsg(msg string) string {
 		lenCMT += 10
 		temp, _ = hex.DecodeString(strconv.Itoa(lenCMT))
 		result += string(temp)
-		fmt.Println(temp)
+		//fmt.Println(temp)
 		result += CMT
 		//check birthday
 		birthday := trimMsg[5]
