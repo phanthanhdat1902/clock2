@@ -35,7 +35,7 @@ func main() {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				for j := 0; j < 100; j++ {
+				for j := 0; j < 157; j++ {
 					//fmt.Println(msg)
 					server.Write([]byte(msg))
 					reader = bufio.NewReader(server)
@@ -57,8 +57,8 @@ func main() {
 }
 func editMsg(msg string) string {
 	var result string
-	msg = strings.TrimSpace(msg)
 	msg = msg[:len(msg)-1]
+	msg = strings.TrimSpace(msg)
 	trimMsg := strings.Split(msg, " ")
 	//check CMD
 	if len(trimMsg) == 3 {

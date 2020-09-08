@@ -57,10 +57,10 @@ func main() {
 	saddr.IP = net.ParseIP("127.0.0.1")
 	saddr.Port = 8888
 	connection, _ := net.ListenUDP("udp", &saddr)
-	for i := 0; i < 16; i++ {
+	for i := 0; i < 32; i++ {
 		go handleConnect(connection)
 	}
-	for i := 0; i < 8; i++ {
+	for i := 0; i < 32; i++ {
 		go startWorking(connection)
 	}
 	fmt.Println("server running")

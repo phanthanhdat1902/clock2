@@ -20,8 +20,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="25a30e34-354f-4e72-8ca0-0084549bf571" name="Default Changelist" comment="edit udp client">
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_8_31_2020_11_30_PM_[Default_Changelist]/shelved.patch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_8_31_2020_11_30_PM__Default_Changelist_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/UDP/UDPClient/udpclient.go" beforeDir="false" afterPath="$PROJECT_DIR$/UDP/UDPClient/udpclient.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/UDP/UDPServer/serverclient.go" beforeDir="false" afterPath="$PROJECT_DIR$/UDP/UDPServer/serverclient.go" afterDir="false" />
@@ -185,7 +183,14 @@
       <option name="project" value="LOCAL" />
       <updated>1599460034794</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="edit udp client">
+      <created>1599537123123</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1599537123123</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -230,54 +235,54 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="561" y="262" key="Github.ShareDialog/0.0.1366.728@0.0.1366.728" timestamp="1598891363211" />
-    <state width="1323" height="163" key="GridCell.Tab.0.bottom" timestamp="1599536659325">
+    <state width="1323" height="160" key="GridCell.Tab.0.bottom" timestamp="1599539692841">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="163" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1599536659325" />
-    <state width="1323" height="163" key="GridCell.Tab.0.center" timestamp="1599536659325">
+    <state width="1323" height="160" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1599539692841" />
+    <state width="1323" height="160" key="GridCell.Tab.0.center" timestamp="1599539692841">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="163" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1599536659325" />
-    <state width="1323" height="163" key="GridCell.Tab.0.left" timestamp="1599536659324">
+    <state width="1323" height="160" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1599539692841" />
+    <state width="1323" height="160" key="GridCell.Tab.0.left" timestamp="1599539692841">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="163" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1599536659324" />
-    <state width="1323" height="163" key="GridCell.Tab.0.right" timestamp="1599536659325">
+    <state width="1323" height="160" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1599539692841" />
+    <state width="1323" height="160" key="GridCell.Tab.0.right" timestamp="1599539692841">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="163" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1599536659325" />
-    <state width="1323" height="160" key="GridCell.Tab.1.bottom" timestamp="1599453658538">
+    <state width="1323" height="160" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1599539692841" />
+    <state width="1323" height="160" key="GridCell.Tab.1.bottom" timestamp="1599539692841">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="160" key="GridCell.Tab.1.bottom/0.0.1366.728@0.0.1366.728" timestamp="1599453658538" />
-    <state width="1323" height="160" key="GridCell.Tab.1.center" timestamp="1599453658538">
+    <state width="1323" height="160" key="GridCell.Tab.1.bottom/0.0.1366.728@0.0.1366.728" timestamp="1599539692841" />
+    <state width="1323" height="160" key="GridCell.Tab.1.center" timestamp="1599539692841">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="160" key="GridCell.Tab.1.center/0.0.1366.728@0.0.1366.728" timestamp="1599453658538" />
-    <state width="1323" height="160" key="GridCell.Tab.1.left" timestamp="1599453658538">
+    <state width="1323" height="160" key="GridCell.Tab.1.center/0.0.1366.728@0.0.1366.728" timestamp="1599539692841" />
+    <state width="1323" height="160" key="GridCell.Tab.1.left" timestamp="1599539692841">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="160" key="GridCell.Tab.1.left/0.0.1366.728@0.0.1366.728" timestamp="1599453658538" />
-    <state width="1323" height="160" key="GridCell.Tab.1.right" timestamp="1599453658538">
+    <state width="1323" height="160" key="GridCell.Tab.1.left/0.0.1366.728@0.0.1366.728" timestamp="1599539692841" />
+    <state width="1323" height="160" key="GridCell.Tab.1.right" timestamp="1599539692841">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="160" key="GridCell.Tab.1.right/0.0.1366.728@0.0.1366.728" timestamp="1599453658538" />
+    <state width="1323" height="160" key="GridCell.Tab.1.right/0.0.1366.728@0.0.1366.728" timestamp="1599539692841" />
     <state x="184" y="9" key="SettingsEditor" timestamp="1598464083007">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="184" y="9" key="SettingsEditor/0.0.1366.728@0.0.1366.728" timestamp="1598464083007" />
-    <state x="275" y="97" key="Vcs.Push.Dialog.v2" timestamp="1599460040035">
+    <state x="275" y="97" key="Vcs.Push.Dialog.v2" timestamp="1599537128449">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="275" y="97" key="Vcs.Push.Dialog.v2/0.0.1366.728@0.0.1366.728" timestamp="1599460040035" />
+    <state x="275" y="97" key="Vcs.Push.Dialog.v2/0.0.1366.728@0.0.1366.728" timestamp="1599537128449" />
     <state width="691" height="372" key="XDebugger.FullValuePopup" timestamp="1598982078452">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state width="691" height="372" key="XDebugger.FullValuePopup/0.0.1366.728@0.0.1366.728" timestamp="1598982078452" />
-    <state x="500" y="278" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1599231914164">
+    <state x="500" y="278" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1599537110862">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="500" y="278" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1366.728@0.0.1366.728" timestamp="1599231914164" />
+    <state x="500" y="278" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1366.728@0.0.1366.728" timestamp="1599537110862" />
     <state x="346" y="49" width="672" height="678" key="search.everywhere.popup" timestamp="1599239853429">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
@@ -298,11 +303,6 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/UDP/UDPClient/udpclient.go</url>
-          <line>26</line>
-          <option name="timeStamp" value="35" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/UDP/UDPClient/udpclient.go</url>
           <line>119</line>
           <option name="timeStamp" value="46" />
         </line-breakpoint>
@@ -315,6 +315,21 @@
           <url>file://$PROJECT_DIR$/Test/Client/client.go</url>
           <line>6</line>
           <option name="timeStamp" value="53" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/UDP/UDPServer/serverclient.go</url>
+          <line>115</line>
+          <option name="timeStamp" value="55" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/UDP/UDPClient/udpclient.go</url>
+          <line>93</line>
+          <option name="timeStamp" value="56" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/UDP/UDPClient/udpclient.go</url>
+          <line>60</line>
+          <option name="timeStamp" value="57" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
