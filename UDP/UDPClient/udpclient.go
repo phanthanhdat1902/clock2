@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -14,44 +15,57 @@ import (
 
 var wg sync.WaitGroup
 var numberC = 0
+var numberR = 0
 
 func main() {
 	var saddr net.UDPAddr
 	saddr.Port = 8888
-	saddr.IP = net.ParseIP("127.0.0.1")
+	saddr.IP = net.ParseIP("192.168.1.7")
 	server, _ := net.DialUDP("udp", nil, &saddr)
 	fmt.Println("client running")
+	for i := 0; i < 32; i++ {
+		go recv(server)
+	}
 	for {
 		reader := bufio.NewReader(os.Stdin)
 		msg, _ := reader.ReadString('\n')
 		msg = editMsg(msg)
-		msg += "\n"
-		start := time.Now()
-		//server.Write([]byte(msg))
-		//reader = bufio.NewReader(server)
-		//msg, _ = reader.ReadString('\n')
-		//fmt.Println(msg)
-		for i := 0; i < 32; i++ {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				for j := 0; j < 157; j++ {
+		if msg != "0" {
+			msg += "\n"
+			start := time.Now()
+			//server.Write([]byte(msg))
+			//reader = bufio.NewReader(server)
+			//msg, _ = reader.ReadString('\n')
+			//fmt.Println(msg)
+			//fmt.Println("number C",numberC)
+			for i := 0; i < runtime.NumCPU(); i++ {
+				wg.Add(1)
+				go func() {
 					//fmt.Println(msg)
-					server.Write([]byte(msg))
-					reader = bufio.NewReader(server)
-					res, err := reader.ReadString('\n')
-					fmt.Println(res)
-					if err != nil {
-						fmt.Println(err)
+					start1 := time.Now().Second()
+					for {
+						server.Write([]byte(msg))
+						numberC++
+						fmt.Println("number C", numberC)
+						end1 := time.Now().Second()
+						if (end1 - start1) > 1 {
+							break
+						}
 					}
-					//numberC++
-					//fmt.Println("number C",numberC)
-				}
-			}()
+					defer wg.Done()
+				}()
+			}
+			wg.Wait()
+			end := time.Now()
+			PrintMemUsage()
+
+			// Force GC to clear up, should see a memory drop
+			runtime.GC()
+			PrintMemUsage()
+			fmt.Println(end, start, "\n-------------\n")
+		} else {
+			fmt.Println("Du lieu truyen vao khong dung dinh dang, hay phan tach cac truong bang dau cach")
 		}
-		wg.Wait()
-		end := time.Now()
-		fmt.Println(end, start, "\n-------------\n")
 
 	}
 }
@@ -119,7 +133,33 @@ func editMsg(msg string) string {
 		result += birthday
 		return result
 	} else {
-		fmt.Println("Du lieu truyen vao khong dung dinh dang, hay phan tach cac truong bang dau cach")
+		return "0"
 	}
-	return result
+}
+
+func PrintMemUsage() {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+
+	fmt.Printf("Alloc = %v Kib", bToKb(m.Alloc))
+	fmt.Printf("\tTotalAlloc = %v Kib", bToKb(m.TotalAlloc))
+	fmt.Printf("\tSys = %v KiB", bToKb(m.Sys))
+	fmt.Printf("\tNumGC = %v\n", m.NumGC)
+}
+
+func recv(server *net.UDPConn) {
+	for {
+		reader := bufio.NewReader(server)
+		res, err := reader.ReadString('\n')
+		numberR++
+		fmt.Println(numberR)
+		fmt.Println(res)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+func bToKb(b uint64) uint64 {
+	return b / 1024
 }
