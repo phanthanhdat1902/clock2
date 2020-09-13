@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/hex"
 	"fmt"
 	"github.com/libp2p/go-reuseport"
@@ -29,9 +28,9 @@ const (
 type customer struct {
 	MSISDN   string
 	IMSI     string
-	name     string
+	Name     string
 	CMT      string
-	birthday string
+	Birthday string
 }
 
 type works struct {
@@ -52,6 +51,7 @@ type databaseWorks struct {
 }
 
 var numberC = 0
+var numberD = 0
 var done chan bool
 var decodeQueue = make(chan works, 500)
 var databaseQueue = make(chan databaseWorks, 500)
@@ -59,23 +59,9 @@ var responseQueue = make(chan response, 500)
 
 func main() {
 	runtime.GOMAXPROCS(100)
-	//var saddr net.UDPAddr
-	//saddr.IP = net.ParseIP("127.0.0.1")
-	//saddr.Port = 8888
-	//connection, _ := net.ListenUDP("udp", &saddr)
-	//for i:=0;i<256;i++{
-	// go func() {
-	//    for j:=0;j<10;j++{
-	//       go recv(connection)
-	//    }
-	// }()
-	//}
-	//for i:=0;i<64;i++{
-	// go responseClient(connection)
-	//}
 	for i := 0; i < 128; i++ {
 		go decode()
-		go sendDatabase()
+		//go workingDb()
 	}
 	for i := 0; i < 64; i++ {
 		go listening()
@@ -87,7 +73,7 @@ func main() {
 func listening() {
 	addr := net.UDPAddr{
 		Port: 8888,
-		IP:   net.ParseIP("192.168.1.7"),
+		IP:   net.ParseIP("192.168.1.150"),
 	}
 
 	connection, err := reuseport.ListenPacket("udp", addr.String())
@@ -110,6 +96,7 @@ func listening() {
 }
 
 func decode() {
+	var resWork response
 	for work := range decodeQueue {
 		number++
 		fmt.Println(number)
@@ -132,9 +119,9 @@ func decode() {
 		IMSI = IMSI[:lenIMSI]
 		cus.IMSI = IMSI
 		if CMD == 3 {
-			dataWork.cus = cus
-			dataWork.CMD = CMD
-			databaseQueue <- dataWork
+			//dataWork.cus = cus
+			//dataWork.CMD = CMD
+			//databaseQueue <- dataWork
 			return
 		} else {
 			//getName
@@ -142,7 +129,7 @@ func decode() {
 			lenName -= 10
 			name := msg[index+1 : index+lenName+1]
 			index += lenName + 1
-			cus.name = name
+			cus.Name = name
 			//get CMT
 			lenCMT, _ := strconv.Atoi(hex.EncodeToString([]byte(string(msg[index]))))
 			lenCMT -= 10
@@ -153,119 +140,66 @@ func decode() {
 			lenBirthday, _ := strconv.Atoi(hex.EncodeToString([]byte(string(msg[index]))))
 			lenBirthday -= 10
 			birthday := msg[index+1 : index+lenBirthday+1]
-			cus.birthday = birthday
-			dataWork.cus = cus
-			dataWork.CMD = CMD
-			databaseQueue <- dataWork
+			cus.Birthday = birthday
+			resWork.client = work.client
+			resWork.err = "0"
+			resWork.CMD = 1
+			responseQueue <- resWork
+			//dataWork.cus = cus
+			//dataWork.CMD = CMD
+			//databaseQueue <- dataWork
 		}
 	}
 }
 
 /*open*/
-func OpenDB() (*sql.DB, error) {
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@%s/%s", DB_USER, DB_PASS, DB_HOST, DB_NAME))
-	if err != nil {
-		fmt.Println(err)
-		return db, err
-	}
-	return db, nil
-}
+//func OpenDB() (*sql.DB, error) {
+//	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@%s/%s", DB_USER, DB_PASS, DB_HOST, DB_NAME))
+//	if err != nil {
+//		fmt.Println(err)
+//		return db, err
+//	}
+//	return db, nil
+//}
 
-func sendDatabase() {
-	db, err := OpenDB()
-	for work := range databaseQueue {
-		var resWork response
-		getCus := work.cus
-		resWork.client = work.client
-		resWork.CMD = work.CMD
-		if db != nil {
-			if work.CMD == 1 {
-				stmt, err := db.Prepare("insert into infor_customer values (?,?,?,?,?)")
-				if err != nil {
-					resWork.err = err.Error()
-					responseQueue <- resWork
-					fmt.Println("workingDtabase db.Prepare", err)
-					continue
-				} else {
-					_, err := stmt.Exec(getCus.MSISDN, getCus.IMSI, getCus.name, getCus.CMT, getCus.birthday)
-					if err != nil {
-						resWork.err = err.Error()
-						responseQueue <- resWork
-						continue
-					}
-				}
-			} else if work.CMD == 2 {
-				var cus customer
-				row := db.QueryRow("select * from infor_customer where MSISDN=" + getCus.MSISDN)
-				err := row.Scan(&cus.MSISDN, &cus.IMSI, &cus.name, &cus.CMT, &cus.birthday)
-				if err != nil {
-					resWork.err = err.Error()
-					responseQueue <- resWork
-					continue
-				}
-				if getCus.birthday == "0" {
-					getCus.birthday = cus.birthday
-				}
-				if getCus.CMT == "0" {
-					getCus.CMT = cus.CMT
-				}
-				if getCus.name == "0" {
-					getCus.name = cus.name
-				}
-				stmt, err := db.Prepare("update infor_customer set full_name=?,CMND=?,birthday=? where MSISDN=?")
-				if err != nil {
-					resWork.err = err.Error()
-					responseQueue <- resWork
-					continue
-				} else {
-					res, err := stmt.Exec(getCus.name, getCus.CMT, getCus.birthday, getCus.MSISDN)
-					a, _ := res.RowsAffected()
-					if err != nil {
-						resWork.err = err.Error()
-						responseQueue <- resWork
-						continue
-					} else if a == 0 {
-						resWork.err = "Khong tim thay thue bao yeu cau hoac khong co gi thay doi thong tin thue bao\n"
-						responseQueue <- resWork
-						continue
-					}
-				}
-			} else if work.CMD == 3 {
-				stmt, err := db.Prepare("DELETE FROM infor_customer WHERE MSISDN = ?")
-				if err != nil {
-					resWork.err = err.Error()
-					responseQueue <- resWork
-					continue
-				} else {
-					res, err := stmt.Exec(getCus.MSISDN)
-					a, _ := res.RowsAffected()
-					if err != nil {
-						resWork.err = err.Error()
-						responseQueue <- resWork
-						continue
-					} else if a == 0 {
-						resWork.err = "Khong tim thay thue bao yeu cau\n"
-						responseQueue <- resWork
-						continue
-					}
-				}
-			} else {
-				resWork.err = "Khong dung dinh dang\n"
-				responseQueue <- resWork
-				continue
-			}
-			fmt.Println("b")
-			resWork.err = "0"
-			responseQueue <- resWork
-			continue
-		} else {
-			resWork.err = err.Error()
-			responseQueue <- resWork
-			fmt.Println(err)
-			continue
-		}
-	}
-}
+/*open db mongo*/
+//func OpenDatabase()  *mongo.Collection{
+//	// Set client options
+//	clientOptions := options.Client().ApplyURI("mongodb://127.0.0.1:27017")
+//
+//	// Connect to MongoDB
+//	client, e := mongo.Connect(context.TODO(), clientOptions)
+//	if e!=nil{
+//		fmt.Println(e)
+//	}
+//	// Check the connection
+//	e = client.Ping(context.TODO(), nil)
+//	if e!=nil{
+//		fmt.Println(e)
+//	}
+//	collection := client.Database("my_exam").Collection("customer")
+//	return collection
+//}
+/*working db*/
+//func workingDb()  {
+//	collection:=OpenDatabase()
+//	for work := range databaseQueue {
+//		var resWork response
+//		john := work.cus
+//		resWork.client = work.client
+//		resWork.CMD = work.CMD
+//		_, e := collection.InsertOne(context.Background(), john)
+//		if e != nil {
+//			fmt.Println(e)
+//		} else {
+//			numberD++
+//			fmt.Println("numberD: ", numberD)
+//		}
+//		resWork.err = "0"
+//		responseQueue <- resWork
+//		continue
+//	}
+//}
 
 func responseClient(connection net.PacketConn) {
 	for work := range responseQueue {

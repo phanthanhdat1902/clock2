@@ -16,53 +16,51 @@ import (
 var wg sync.WaitGroup
 var numberC = 0
 var numberR = 0
+var done chan bool
+var start int
+var end int
 
 func main() {
 	var saddr net.UDPAddr
 	saddr.Port = 8888
-	saddr.IP = net.ParseIP("192.168.1.7")
+	saddr.IP = net.ParseIP("192.168.1.150")
 	server, _ := net.DialUDP("udp", nil, &saddr)
 	fmt.Println("client running")
 	for i := 0; i < 32; i++ {
 		go recv(server)
 	}
+	start = time.Now().Second()
+	for i := 0; i < 32; i++ {
+		go input(server)
+	}
+	for {
+		end = time.Now().Second()
+		if (end - start) == 5 {
+			os.Exit(3)
+		}
+	}
+	<-done
+}
+func input(server *net.UDPConn) {
 	for {
 		reader := bufio.NewReader(os.Stdin)
 		msg, _ := reader.ReadString('\n')
 		msg = editMsg(msg)
 		if msg != "0" {
 			msg += "\n"
-			start := time.Now()
-			//server.Write([]byte(msg))
-			//reader = bufio.NewReader(server)
-			//msg, _ = reader.ReadString('\n')
-			//fmt.Println(msg)
-			//fmt.Println("number C",numberC)
 			for i := 0; i < runtime.NumCPU(); i++ {
 				wg.Add(1)
 				go func() {
 					//fmt.Println(msg)
-					start1 := time.Now().Second()
 					for {
 						server.Write([]byte(msg))
 						numberC++
 						fmt.Println("number C", numberC)
-						end1 := time.Now().Second()
-						if (end1 - start1) > 1 {
-							break
-						}
 					}
-					defer wg.Done()
+					wg.Done()
 				}()
 			}
 			wg.Wait()
-			end := time.Now()
-			PrintMemUsage()
-
-			// Force GC to clear up, should see a memory drop
-			runtime.GC()
-			PrintMemUsage()
-			fmt.Println(end, start, "\n-------------\n")
 		} else {
 			fmt.Println("Du lieu truyen vao khong dung dinh dang, hay phan tach cac truong bang dau cach")
 		}
@@ -152,7 +150,7 @@ func recv(server *net.UDPConn) {
 		reader := bufio.NewReader(server)
 		res, err := reader.ReadString('\n')
 		numberR++
-		fmt.Println(numberR)
+		fmt.Println("numberR: ", numberR)
 		fmt.Println(res)
 		if err != nil {
 			fmt.Println(err)
