@@ -23,7 +23,7 @@ var end int
 func main() {
 	var saddr net.UDPAddr
 	saddr.Port = 8888
-	saddr.IP = net.ParseIP("192.168.1.150")
+	saddr.IP = net.ParseIP("127.0.0.1")
 	server, _ := net.DialUDP("udp", nil, &saddr)
 	fmt.Println("client running")
 	for i := 0; i < 32; i++ {

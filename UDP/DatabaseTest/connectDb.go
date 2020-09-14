@@ -2,13 +2,10 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
-	"log"
-	"time"
 )
 import (
-	_ "gopkg.in/mgo.v2"
+	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 )
 
 type customer struct {
@@ -37,16 +34,8 @@ func main() {
 	insert(mongoSession, john)
 }
 func OpenDatabase() *mgo.Session {
-	mongoDBDialInfo := &mgo.DialInfo{
-		Addrs:    []string{MongoDBHosts},
-		Timeout:  60 * time.Second,
-		Database: AuthDatabase,
-	}
-	mongoSession, err := mgo.DialWithInfo(mongoDBDialInfo)
-	if err != nil {
-		log.Fatalf("CreateSession: %s\n", err)
-	}
-	return mongoSession
+	session, _ := mgo.Dial("127.0.0.1:27017")
+	return session
 }
 func insert(mongoSession *mgo.Session, john customer) {
 	sessionCopy := mongoSession.Copy()

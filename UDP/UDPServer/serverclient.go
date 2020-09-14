@@ -1,20 +1,15 @@
 package main
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/globalsign/mgo"
 	"github.com/libp2p/go-reuseport"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"net"
 	"runtime"
 	"strconv"
 	"strings"
 )
-import _ "github.com/libp2p/go-reuseport"
-
-import _ "github.com/go-sql-driver/mysql"
 
 var number = 0
 var numberR = 0
@@ -54,10 +49,12 @@ var databaseQueue = make(chan databaseWorks, 500)
 var responseQueue = make(chan response, 500)
 
 func main() {
+	mongoSession := OpenDatabase()
+	mongoSession.SetMode(mgo.Monotonic, true)
 	runtime.GOMAXPROCS(100)
 	for i := 0; i < 128; i++ {
 		go decode()
-		go workingDb()
+		go workingDb(mongoSession)
 	}
 	for i := 0; i < 64; i++ {
 		go listening()
@@ -69,7 +66,7 @@ func main() {
 func listening() {
 	addr := net.UDPAddr{
 		Port: 8888,
-		IP:   net.ParseIP("192.168.1.150"),
+		IP:   net.ParseIP("127.0.0.1"),
 	}
 
 	connection, err := reuseport.ListenPacket("udp", addr.String())
@@ -154,27 +151,15 @@ func decode() {
 //}
 
 /*open db mongo*/
-func OpenDatabase() *mongo.Collection {
-	// Set client options
-	clientOptions := options.Client().ApplyURI("mongodb://127.0.0.1:27017")
-
-	// Connect to MongoDB
-	client, e := mongo.Connect(context.Background(), clientOptions)
-	if e != nil {
-		fmt.Println(e)
-	}
-	// Check the connection
-	e = client.Ping(context.Background(), nil)
-	if e != nil {
-		fmt.Println(e)
-	}
-	collection := client.Database("my_exam").Collection("customer")
-	return collection
+func OpenDatabase() *mgo.Session {
+	session, _ := mgo.Dial("127.0.0.1:27017")
+	return session
 }
 
 /*working db*/
-func workingDb() {
-	collection := OpenDatabase()
+func workingDb(mongoSession *mgo.Session) {
+	sessionCopy := mongoSession.Copy()
+	collection := sessionCopy.DB("my_exam").C("customer")
 	for work := range databaseQueue {
 		var resWork response
 		resWork.err = "0"
@@ -184,15 +169,12 @@ func workingDb() {
 		john := work.cus
 		arrayCus = append(arrayCus, john)
 		if len(arrayCus)%1000 == 0 {
-			_, e := collection.InsertMany(context.Background(), arrayCus)
+			e := collection.Insert(arrayCus)
 			if e != nil {
 				fmt.Println(e)
-			} else {
-				numberD++
-				fmt.Println("numberD: ", numberD)
 			}
 		}
-		continue
+		//}
 	}
 }
 
