@@ -1,11 +1,14 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"log"
+	"time"
+)
+import (
+	_ "gopkg.in/mgo.v2"
 )
 
 type customer struct {
@@ -17,36 +20,38 @@ type customer struct {
 	Birthday string        `bson:"birthday"`
 }
 
+const (
+	MongoDBHosts = "mongodb://127.0.0.1:27017"
+	AuthDatabase = "my_exam"
+)
+
 func main() {
-	collection := OpenDatabase()
+	mongoSession := OpenDatabase()
+	mongoSession.SetMode(mgo.Monotonic, true)
 	var john customer
 	john.MSISDN = "84981064189"
 	john.IMSI = "12345642"
 	john.Name = "DAT"
 	john.Birthday = "19021998"
 	john.CMT = "123456780"
-	r, e := collection.InsertOne(context.Background(), john)
-	fmt.Println(r)
-	if e != nil {
-		fmt.Println(e)
-	} else {
-		fmt.Println("sucessfull")
-	}
+	insert(mongoSession, john)
 }
-func OpenDatabase() *mongo.Collection {
-	// Set client options
-	clientOptions := options.Client().ApplyURI("mongodb://127.0.0.1:27017")
-
-	// Connect to MongoDB
-	client, e := mongo.Connect(context.TODO(), clientOptions)
-	if e != nil {
-		fmt.Println(e)
+func OpenDatabase() *mgo.Session {
+	mongoDBDialInfo := &mgo.DialInfo{
+		Addrs:    []string{MongoDBHosts},
+		Timeout:  60 * time.Second,
+		Database: AuthDatabase,
 	}
-	// Check the connection
-	e = client.Ping(context.TODO(), nil)
-	if e != nil {
-		fmt.Println(e)
+	mongoSession, err := mgo.DialWithInfo(mongoDBDialInfo)
+	if err != nil {
+		log.Fatalf("CreateSession: %s\n", err)
 	}
-	collection := client.Database("my_exam").Collection("customer")
-	return collection
+	return mongoSession
+}
+func insert(mongoSession *mgo.Session, john customer) {
+	sessionCopy := mongoSession.Copy()
+	defer sessionCopy.Close()
+	collection := sessionCopy.DB("my_exam").C("customer")
+	err := collection.Insert(john)
+	fmt.Println(err)
 }

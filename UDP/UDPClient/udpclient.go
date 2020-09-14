@@ -30,9 +30,7 @@ func main() {
 		go recv(server)
 	}
 	start = time.Now().Second()
-	for i := 0; i < 32; i++ {
-		go input(server)
-	}
+	go input(server)
 	for {
 		end = time.Now().Second()
 		if (end - start) == 5 {

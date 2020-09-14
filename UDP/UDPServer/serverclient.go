@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"github.com/libp2p/go-reuseport"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"net"
 	"runtime"
 	"strconv"
@@ -15,14 +18,7 @@ import _ "github.com/go-sql-driver/mysql"
 
 var number = 0
 var numberR = 0
-
-//const connect database
-const (
-	DB_HOST = "tcp(127.0.0.1:3306)"
-	DB_NAME = /*name database*/ "my_exam"
-	DB_USER = /*"user"*/ "ptd"
-	DB_PASS = /*"pass"*/ "anh123asd"
-)
+var arrayCus []interface{}
 
 /*model*/
 type customer struct {
@@ -61,7 +57,7 @@ func main() {
 	runtime.GOMAXPROCS(100)
 	for i := 0; i < 128; i++ {
 		go decode()
-		//go workingDb()
+		go workingDb()
 	}
 	for i := 0; i < 64; i++ {
 		go listening()
@@ -96,7 +92,6 @@ func listening() {
 }
 
 func decode() {
-	var resWork response
 	for work := range decodeQueue {
 		number++
 		fmt.Println(number)
@@ -119,9 +114,9 @@ func decode() {
 		IMSI = IMSI[:lenIMSI]
 		cus.IMSI = IMSI
 		if CMD == 3 {
-			//dataWork.cus = cus
-			//dataWork.CMD = CMD
-			//databaseQueue <- dataWork
+			dataWork.cus = cus
+			dataWork.CMD = CMD
+			databaseQueue <- dataWork
 			return
 		} else {
 			//getName
@@ -141,13 +136,9 @@ func decode() {
 			lenBirthday -= 10
 			birthday := msg[index+1 : index+lenBirthday+1]
 			cus.Birthday = birthday
-			resWork.client = work.client
-			resWork.err = "0"
-			resWork.CMD = 1
-			responseQueue <- resWork
-			//dataWork.cus = cus
-			//dataWork.CMD = CMD
-			//databaseQueue <- dataWork
+			dataWork.cus = cus
+			dataWork.CMD = CMD
+			databaseQueue <- dataWork
 		}
 	}
 }
@@ -163,43 +154,47 @@ func decode() {
 //}
 
 /*open db mongo*/
-//func OpenDatabase()  *mongo.Collection{
-//	// Set client options
-//	clientOptions := options.Client().ApplyURI("mongodb://127.0.0.1:27017")
-//
-//	// Connect to MongoDB
-//	client, e := mongo.Connect(context.TODO(), clientOptions)
-//	if e!=nil{
-//		fmt.Println(e)
-//	}
-//	// Check the connection
-//	e = client.Ping(context.TODO(), nil)
-//	if e!=nil{
-//		fmt.Println(e)
-//	}
-//	collection := client.Database("my_exam").Collection("customer")
-//	return collection
-//}
+func OpenDatabase() *mongo.Collection {
+	// Set client options
+	clientOptions := options.Client().ApplyURI("mongodb://127.0.0.1:27017")
+
+	// Connect to MongoDB
+	client, e := mongo.Connect(context.Background(), clientOptions)
+	if e != nil {
+		fmt.Println(e)
+	}
+	// Check the connection
+	e = client.Ping(context.Background(), nil)
+	if e != nil {
+		fmt.Println(e)
+	}
+	collection := client.Database("my_exam").Collection("customer")
+	return collection
+}
+
 /*working db*/
-//func workingDb()  {
-//	collection:=OpenDatabase()
-//	for work := range databaseQueue {
-//		var resWork response
-//		john := work.cus
-//		resWork.client = work.client
-//		resWork.CMD = work.CMD
-//		_, e := collection.InsertOne(context.Background(), john)
-//		if e != nil {
-//			fmt.Println(e)
-//		} else {
-//			numberD++
-//			fmt.Println("numberD: ", numberD)
-//		}
-//		resWork.err = "0"
-//		responseQueue <- resWork
-//		continue
-//	}
-//}
+func workingDb() {
+	collection := OpenDatabase()
+	for work := range databaseQueue {
+		var resWork response
+		resWork.err = "0"
+		resWork.client = work.client
+		resWork.CMD = work.CMD
+		responseQueue <- resWork
+		john := work.cus
+		arrayCus = append(arrayCus, john)
+		if len(arrayCus)%1000 == 0 {
+			_, e := collection.InsertMany(context.Background(), arrayCus)
+			if e != nil {
+				fmt.Println(e)
+			} else {
+				numberD++
+				fmt.Println("numberD: ", numberD)
+			}
+		}
+		continue
+	}
+}
 
 func responseClient(connection net.PacketConn) {
 	for work := range responseQueue {
