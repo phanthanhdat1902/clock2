@@ -33,7 +33,7 @@ func main() {
 	go input(server)
 	for {
 		end = time.Now().Second()
-		if (end - start) == 5 {
+		if (end - start) >= 10 {
 			os.Exit(3)
 		}
 	}
